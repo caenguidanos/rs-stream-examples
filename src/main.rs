@@ -22,12 +22,14 @@ async fn main() {
                     r#"
                         <a href="/stream">Stream!</a>
                         <a href="/stream-zip">Stream ZIP!</a>
+                        <a href="/stream-zip-and-gzip">Stream ZIP with gzip compression!</a>
                     "#,
                 )
             }),
         )
         .route("/stream", get(route::stream))
         .route("/stream-zip", get(route::stream_zip))
+        .route("/stream-zip-and-gzip", get(route::stream_zip_and_gzip))
         .with_state(AppState { conn });
 
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())

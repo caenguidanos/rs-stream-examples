@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::sync::Arc;
 
 use axum::body::StreamBody;
@@ -68,6 +69,70 @@ pub async fn stream_zip(State(state): State<AppState>) -> impl IntoResponse {
                     .append(filename, zipit::FileDateTime::now(), &mut content_cursor)
                     .await
                     .unwrap();
+
+                document.id
+            });
+        }
+
+        while let Some(id) = tasks.join_next().await {
+            println!("Processed {id:?}");
+        }
+
+        if let Ok(inner) = Arc::try_unwrap(archive) {
+            let archive = inner.into_inner();
+
+            if let Err(error) = archive.finalize().await {
+                println!("{error}");
+            }
+        }
+    });
+
+    let headers = [
+        ("content-type", "application/zip"),
+        (
+            "content-disposition",
+            "attachment; filename=\"documents.zip\"",
+        ),
+    ];
+
+    (
+        StatusCode::OK,
+        headers,
+        StreamBody::from(ReaderStream::new(rx)),
+    )
+}
+
+pub async fn stream_zip_and_gzip(State(state): State<AppState>) -> impl IntoResponse {
+    let (wx, rx) = tokio::io::duplex(4 * 1024);
+
+    tokio::spawn(async move {
+        let documents = data::get_documents(&state.conn).await;
+
+        let mut tasks = tokio::task::JoinSet::new();
+
+        let archive = Arc::new(Mutex::new(zipit::Archive::new(wx)));
+
+        for document in documents.into_iter() {
+            let archive = Arc::clone(&archive);
+
+            tasks.spawn(async move {
+                let filename = format!("{}.zip", document.id);
+                let content = format!("Invoice {}", document.id);
+
+                let mut compressor =
+                    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+
+                if compressor.write_all(content.as_bytes()).is_ok() {
+                    let compressed_content = compressor.finish().unwrap_or_default();
+
+                    let mut content_cursor = std::io::Cursor::new(compressed_content);
+
+                    let mut archive = archive.lock().await;
+                    archive
+                        .append(filename, zipit::FileDateTime::now(), &mut content_cursor)
+                        .await
+                        .unwrap();
+                }
 
                 document.id
             });

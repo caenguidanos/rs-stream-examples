@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 axum = "0.6.20"
 bytes = "1.4.0"
+flate2 = "1.0.26"
 hyper = { version = "0.14.27", features = ["full"] }
 sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio-native-tls"] }
 tokio = { version = "1.30.0", features = ["full"] }
