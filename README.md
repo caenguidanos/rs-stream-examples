@@ -1,2 +1,2 @@
 - Concurrent plain text streaming `/stream`
-- Concurrent zip archive streaming `/stream-zip`
+- Concurrent zip archive streaming without compression `/stream-zip`
