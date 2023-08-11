@@ -67,9 +67,9 @@ pub async fn stream_zip(State(state): State<AppState>) -> impl IntoResponse {
                 let file_content = format!("Invoice {}", document.id);
 
                 let mut file_content_cursor = std::io::Cursor::new(file_content);
-                let mut file_archive = file_archive.lock().await;
+                let mut file_archive_locked = file_archive.lock().await;
 
-                if let Err(error) = file_archive
+                if let Err(error) = file_archive_locked
                     .append(
                         file_name,
                         zipit::FileDateTime::now(),
