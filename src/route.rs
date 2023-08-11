@@ -64,11 +64,15 @@ pub async fn stream_zip(State(state): State<AppState>) -> impl IntoResponse {
                 let content = format!("Invoice {}", document.id);
 
                 let mut content_cursor = std::io::Cursor::new(bytes::Bytes::from(content));
+
                 let mut archive = archive.lock().await;
-                archive
+
+                if let Err(error) = archive
                     .append(filename, zipit::FileDateTime::now(), &mut content_cursor)
                     .await
-                    .unwrap();
+                {
+                    println!("{error}");
+                }
 
                 document.id
             });
@@ -91,7 +95,7 @@ pub async fn stream_zip(State(state): State<AppState>) -> impl IntoResponse {
         ("content-type", "application/zip"),
         (
             "content-disposition",
-            "attachment; filename=\"documents.zip\"",
+            r#"attachment; filename="documents.zip""#,
         ),
     ];
 
@@ -128,10 +132,13 @@ pub async fn stream_zip_and_gzip(State(state): State<AppState>) -> impl IntoResp
                     let mut content_cursor = std::io::Cursor::new(compressed_content);
 
                     let mut archive = archive.lock().await;
-                    archive
+
+                    if let Err(error) = archive
                         .append(filename, zipit::FileDateTime::now(), &mut content_cursor)
                         .await
-                        .unwrap();
+                    {
+                        println!("{error}");
+                    }
                 }
 
                 document.id
