@@ -1,0 +1,17 @@
+[package]
+name = "rs-stream-zip"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.20"
+bytes = "1.4.0"
+hyper = { version = "0.14.27", features = ["full"] }
+sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio-native-tls"] }
+tokio = { version = "1.30.0", features = ["full"] }
+tokio-util = { version = "0.7.8", features = ["full"] }
+tower = "0.4.13"
+ulid = "1.0.0"
+zipit = { version = "0.3.1", features = ["tokio-async-io", "chrono-datetime"] }
